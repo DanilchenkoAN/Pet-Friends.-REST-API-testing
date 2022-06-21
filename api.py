@@ -4,7 +4,7 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 class PetFriends:
     def __init__(self):
-        self.base_url='https://petfriends1.herokuapp.com/'
+        self.base_url='https://petfriends.skillfactory.ru/'
 
     def get_key(self,email,password):
         """Метод делает запрос к API сервера и возвращает статус запроса, а также в формате json уникальный ключ пользователя
@@ -52,6 +52,7 @@ class PetFriends:
         headers={'auth_key':auth_key['key'],'Content-Type': data.content_type}  # передаем формат данных объекта data в ключ Content-Type:
         res=requests.post(self.base_url+'api/pets',headers=headers,data=data)  # запрос на добавление данных с заголовками (ключ) и данными
         status = res.status_code
+        result=''
         try:
             result = res.json()
         except:
