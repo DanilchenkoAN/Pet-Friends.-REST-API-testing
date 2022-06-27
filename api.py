@@ -6,7 +6,7 @@ class PetFriends:
     def __init__(self):
         self.base_url='https://petfriends.skillfactory.ru/'
 
-    def get_key(self,email,password):
+    def get_api_key(self,email,password):
         """Метод делает запрос к API сервера и возвращает статус запроса, а также в формате json уникальный ключ пользователя
         который входит с определенным логином и паролем"""
         headers={      # вводим словарь с заголовками запроса - логином и паролем
@@ -22,7 +22,7 @@ class PetFriends:
             result=res.text
         return status,result
 
-    def get_pet_list(self,auth_key,filter):
+    def get_pet_list(self,auth_key:json,filter) -> json:
         """Метод делает запрос к серверу API и возвращает статус запроса и результат в формате JSON
         с питомцами, совпадающими с фильтром. На данный момент фильтр может иметь
         либо пустое значение - получить список всех питомцев, либо 'my_pets' - получить список
@@ -47,7 +47,7 @@ class PetFriends:
                 'name': name,
                 'animal_type': animal_type,
                 'age': age,
-                'pet_photo': (pet_photo, open(pet_photo, 'rb'), 'image/jpeg')
+                'pet_photo': (pet_photo, open(pet_photo, 'rb'), 'image\jpeg')
             })
         headers={'auth_key':auth_key['key'],'Content-Type': data.content_type}  # передаем формат данных объекта data в ключ Content-Type:
         res=requests.post(self.base_url+'api/pets',headers=headers,data=data)  # запрос на добавление данных с заголовками (ключ) и данными
@@ -113,7 +113,7 @@ class PetFriends:
     def add_pet_photo(self,auth_key:json,pet_id,pet_photo):
         data = MultipartEncoder(
             fields={
-                'pet_photo': (pet_photo, open(pet_photo, 'rb'), 'image/jpeg')
+                'pet_photo': (pet_photo, open(pet_photo, 'rb'), 'image\jpeg')
             })
         headers = {'auth_key': auth_key['key'], 'Content-Type': data.content_type}
         res=requests.post(self.base_url+'api/pets/set_photo/'+pet_id,headers=headers,data=data)

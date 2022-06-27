@@ -1,7 +1,5 @@
 from api import PetFriends
 from settings import valid_email, valid_password, invalid_email, invalid_password
-import os
-import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 import pytest
 
@@ -21,48 +19,90 @@ def generate_string(n):
 
 @pytest.fixture(scope="module")
 def get_api_key():
-    """ Проверяем что запрос api ключа возвращает статус 200 и в результате содержится слово key"""
     # Отправляем запрос и сохраняем полученный ответ с кодом статуса в status, а текст ответа в result
-    status, result = pf.get_key(valid_email, valid_password)
+    status, result = pf.get_api_key(valid_email, valid_password)
     # Сверяем полученные данные с нашими ожиданиями
     assert status == 200
     assert 'key' in result
     return result
 
+#проверяем возможность получения списка моих питомцев с валидным ключом api
 @pytest.mark.parametrize("filter", ['', 'my_pets'], ids= ['empty string', 'only my pets'])
-def test_get_all_pets_with_valid_key(filter):
+def test_get_all_pets_with_valid_key(get_api_key,filter):
    pytest.status, result = pf.get_pet_list(get_api_key, filter)
    assert len(result['pets']) > 0
 
-
+#проверяем возможность добавления питомца с валидным ключом api и данными
 @pytest.mark.parametrize("name"
-   , [generate_string(255), generate_string(1001), russian_chars(), russian_chars().upper(), chinese_chars(),
-      special_chars(), '123']
-   , ids=['255 symbols', 'more than 1000 symbols', 'russian', 'RUSSIAN', 'chinese', 'specials', 'digit'])
+   , [generate_string(255),
+      generate_string(1001),
+      russian_chars(),
+      russian_chars().upper(),
+      chinese_chars(),
+      special_chars(),
+      '123']
+   , ids=['255 symbols',
+          'more than 1000 symbols',
+          'russian',
+          'RUSSIAN',
+          'chinese',
+          'specials',
+          'digit'])
 @pytest.mark.parametrize("animal_type"
-   , [generate_string(255), generate_string(1001), russian_chars(), russian_chars().upper(), chinese_chars(), special_chars(), '123']
-   , ids=['255 symbols', 'more than 1000 symbols', 'russian', 'RUSSIAN', 'chinese', 'specials', 'digit'])
+   , [generate_string(255),
+      generate_string(1001),
+      russian_chars(),
+      russian_chars().upper(),
+      chinese_chars(),
+      special_chars(),
+      '123']
+   , ids=['255 symbols',
+          'more than 1000 symbols',
+          'russian',
+          'RUSSIAN',
+          'chinese',
+          'specials',
+          'digit'])
 @pytest.mark.parametrize("age", ['1'], ids=['min'])
 @pytest.mark.parametrize("pet_photo", ['images\zhora.jpg'], ids=['photo'])
-def test_add_new_pet_with_valid_key(name, animal_type, age, pet_photo):
+def test_add_new_pet_with_valid_key(get_api_key,name, animal_type, age, pet_photo):
     status, result = pf.add_new_pet(get_api_key, name, animal_type, age, pet_photo)
     assert status == 200
     assert result['name'] == name
 
-#проверяем возможность обновить информацию о питомце
+#проверяем возможность обновить информацию о питомце с валидным ключом api и данными
 @pytest.mark.parametrize("name"
-   , [generate_string(255), generate_string(1001), russian_chars(), russian_chars().upper(), chinese_chars(),
-      special_chars(), '123']
-   , ids=['255 symbols', 'more than 1000 symbols', 'russian', 'RUSSIAN', 'chinese', 'specials', 'digit'])
+   , [generate_string(255),
+      generate_string(1001),
+      russian_chars(),
+      russian_chars().upper(),
+      chinese_chars(),
+      special_chars(),
+      '123']
+   , ids=['255 symbols',
+          'more than 1000 symbols',
+          'russian',
+          'RUSSIAN', 'chinese', 'specials', 'digit'])
 @pytest.mark.parametrize("animal_type"
-   , [generate_string(255), generate_string(1001), russian_chars(), russian_chars().upper(), chinese_chars(), special_chars(), '123']
-   , ids=['255 symbols', 'more than 1000 symbols', 'russian', 'RUSSIAN', 'chinese', 'specials', 'digit'])
+   , [generate_string(255),
+      generate_string(1001),
+      russian_chars(),
+      russian_chars().upper(),
+      chinese_chars(),
+      special_chars(),
+      '123']
+   , ids=['255 symbols',
+          'more than 1000 symbols',
+          'russian',
+          'RUSSIAN',
+          'chinese',
+          'specials',
+          'digit'])
 @pytest.mark.parametrize("age", ['1'], ids=['min'])
-def test_update_pet(name,animal_type,age):
-    _, auth_key = pf.get_key(valid_email, valid_password)
-    _, my_pets = pf.get_pet_list(auth_key, "my_pets")  # получаем список питомцев
+def test_update_pet(get_api_key,name,animal_type,age):
+    _, my_pets = pf.get_pet_list(get_api_key, "my_pets")  # получаем список питомцев
     if len(my_pets['pets']) > 0:  # проверяем, есть ли животные в моем списке
-        status, result = pf.update_pet_info(auth_key, my_pets['pets'][0]['id'], name, animal_type,
+        status, result = pf.update_pet_info(get_api_key, my_pets['pets'][0]['id'], name, animal_type,
                                             age)  # выполняем метод обновления инфы
 
         assert status == 200
@@ -70,9 +110,9 @@ def test_update_pet(name,animal_type,age):
     else:
         raise Exception("There is no my pets")
 
-#проверяем возможность добавить фото питомца
+#проверяем возможность добавить валидного фото питомца с корректным ключом api
 @pytest.mark.parametrize("pet_photo", ['images\zhora.jpg'], ids= ['photo'])
-def test_add_pet_photo(pet_photo):
+def test_add_pet_photo(get_api_key,pet_photo):
     # Получаем полный путь изображения питомца и сохраняем в переменную pet_photo
     # получаем список питомцев
     _, my_pets = pf.get_pet_list(get_api_key, "my_pets")
@@ -83,7 +123,7 @@ def test_add_pet_photo(pet_photo):
     else:
         raise Exception("There is no my pets")
 
-# проверяем возможность удаления питомца
+# проверяем возможность удаления питомца с валидным ключом api и данными
 def test_successful_delete_self_pet_with_valid_params(get_api_key):
     _, my_pets = pf.get_pet_list(get_api_key,"my_pets")  # запрашиваем список своих питомцев
 

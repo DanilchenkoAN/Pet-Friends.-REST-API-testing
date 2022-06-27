@@ -17,77 +17,176 @@ def special_chars():
 def generate_string(n):
     return n*'x'
 
+@pytest.fixture(scope="module")
+def get_api_key():
+    # Отправляем запрос и сохраняем полученный ответ с кодом статуса в status, а текст ответа в result
+    status, result = pf.get_api_key(valid_email, valid_password)
+    # Сверяем полученные данные с нашими ожиданиями
+    assert status == 200
+    assert 'key' in result
+    return result
+
 # проверяем возможность получения ключа c неверными параметрами
-@pytest.mark.parametrize("email", ['', 'sva-yuliana@yandex.ru',generate_string(255), russian_chars(), chinese_chars(),
-      special_chars(), '123'], ids=['empty string', 'uncorrect email','255 symbols', 'russian','chinese', 'specials', 'digit'])
-@pytest.mark.parametrize("password", ['', '7Fevrulu7',generate_string(255), russian_chars(), chinese_chars(),
-      special_chars(), '123'], ids= ['empty string', 'uncorrect password','255 symbols', 'russian','chinese', 'specials', 'digit'])
+@pytest.mark.parametrize("email", ['',
+                                   'sva-yuliana@yandex.ru',
+                                   generate_string(255),
+                                   russian_chars(),
+                                   chinese_chars(),
+                                   special_chars(),
+                                   '123'],
+                         ids=['empty string',
+                              'uncorrect email',
+                              '255 symbols',
+                              'russian',
+                              'chinese',
+                              'specials',
+                              'digit'])
+@pytest.mark.parametrize("password",
+                         ['',
+                          '7Fevrulu7',
+                          generate_string(255),
+                          russian_chars(),
+                          chinese_chars(),
+                          special_chars(),
+                          '123'],
+                         ids= ['empty string',
+                               'uncorrect password',
+                               '255 symbols',
+                               'russian',
+                               'chinese',
+                               'specials',
+                               'digit'])
 def test_get_api_key_for_invalid_email(email, password):
-    status, result = pf.get_key(email, password)
+    status, result = pf.get_api_key(email, password)
     assert status == 403
 
 # проверяем возможность добавления питомца с неверными параметрами
-@pytest.mark.parametrize("auth_key", ['', '5354688569:AAEzsVM46oAIxt5V12juByoD_wtg1gFqNBY',generate_string(255), generate_string(1001),russian_chars(), chinese_chars(),
-      special_chars(), '123'], ids=['empty string', 'uncorrect token','255 symbols','more 1000 symbols','russian','chinese', 'specials', 'digit'])
+@pytest.mark.parametrize("invalid_auth_key", ['',
+                                      '5354688569:AAEzsVM46oAIxt5V12juByoD_wtg1gFqNBY',
+                                      generate_string(255),
+                                      generate_string(1001),
+                                      russian_chars(),
+                                      chinese_chars(),
+                                      special_chars(),
+                                      '123'],
+                         ids=['empty string',
+                              'uncorrect token',
+                              '255 symbols',
+                              'more 1000 symbols',
+                              'russian',
+                              'chinese',
+                              'specials',
+                              'digit'])
 @pytest.mark.parametrize("name", [''], ids=['empty'])
 @pytest.mark.parametrize("animal_type", [''], ids=['empty'])
 @pytest.mark.parametrize("age",
-                        ['', '-1', '0', '100', '1.5', '2147483647', '2147483648', special_chars(), russian_chars(),
-                         russian_chars().upper(), chinese_chars()]
-   , ids=['empty', 'negative', 'zero', 'greater than max', 'float', 'int_max', 'int_max + 1', 'specials',
-          'russian', 'RUSSIAN', 'chinese'])
+                        ['',
+                         '-1',
+                         '0',
+                         '100',
+                         '1.5',
+                         '2147483647',
+                         '2147483648',
+                         special_chars(),
+                         russian_chars(),
+                         russian_chars().upper(),
+                         chinese_chars()]
+   , ids=['empty',
+          'negative',
+          'zero',
+          'greater than max',
+          'float',
+          'int_max',
+          'int_max + 1',
+          'specials',
+          'russian',
+          'RUSSIAN',
+          'chinese'])
 @pytest.mark.parametrize("pet_photo",
-                        ['', 'testfile.txt', 'images/fedor.jpg']
+                        ['', 'testfile.txt',
+                         'images\fedor.jpg']
    , ids=['empty', 'textfile', 'the file does not exist', ])
-def test_add_new_pet_with_invalid_params(auth_key,name, animal_type, age, pet_photo):
+def test_add_new_pet_with_invalid_params(invalid_auth_key,name, animal_type, age, pet_photo):
     pet_photo = os.path.join(os.path.dirname(__file__), pet_photo)
-    status, result = pf.add_new_pet(auth_key, name, animal_type, age, pet_photo)
+    status, result = pf.add_new_pet(invalid_auth_key, name, animal_type, age, pet_photo)
     assert status == 403
 
 # проверяем возможность добавления питомца без фото с неверными параметрами
-@pytest.mark.parametrize("auth_key", ['', '5354688569:AAEzsVM46oAIxt5V12juByoD_wtg1gFqNBY',generate_string(255), generate_string(1001),russian_chars(), chinese_chars(),
-      special_chars(), '123'], ids=['empty string', 'uncorrect token','255 symbols','more 1000 symbols','russian','chinese', 'specials', 'digit'])
+@pytest.mark.parametrize("invalid_auth_key",
+                         ['',
+                          '5354688569:AAEzsVM46oAIxt5V12juByoD_wtg1gFqNBY',
+                          generate_string(255),
+                          generate_string(1001),
+                          russian_chars(),
+                          chinese_chars(),
+                          special_chars(),
+                          '123'], ids=['empty string',
+                                       'uncorrect token',
+                                       '255 symbols',
+                                       'more 1000 symbols',
+                                       'russian',
+                                       'chinese',
+                                       'specials',
+                                       'digit'])
 @pytest.mark.parametrize("name", [''], ids=['empty'])
 @pytest.mark.parametrize("animal_type", [''], ids=['empty'])
 @pytest.mark.parametrize("age",
-                        ['', '-1', '0', '100', '1.5', '2147483647', '2147483648', special_chars(), russian_chars(),
-                         russian_chars().upper(), chinese_chars()]
-   , ids=['empty', 'negative', 'zero', 'greater than max', 'float', 'int_max', 'int_max + 1', 'specials',
-          'russian', 'RUSSIAN', 'chinese'])
-def test_add_new_pet_without_photo_whis_valid_key(auth_key,name, animal_type, age):
-    status, result = pf.add_new_pet_without_photo(auth_key, name, animal_type, age)
+                        ['',
+                         '-1',
+                         '0',
+                         '100',
+                         '1.5',
+                         '2147483647',
+                         '2147483648',
+                         special_chars(),
+                         russian_chars(),
+                         russian_chars().upper(),
+                         chinese_chars()]
+   , ids=['empty',
+          'negative',
+          'zero',
+          'greater than max',
+          'float',
+          'int_max',
+          'int_max + 1',
+          'specials',
+          'russian',
+          'RUSSIAN',
+          'chinese'])
+def test_add_new_pet_without_photo_whis_valid_key(invalid_auth_key,name, animal_type, age):
+    status, result = pf.add_new_pet_without_photo(invalid_auth_key, name, animal_type, age)
     assert status == 400
 
 # проверяем возможность добавления фото питомца с неверными параметрами
-@pytest.mark.parametrize("invalid_auth_key", ['', '5354688569:AAEzsVM46oAIxt5V12juByoD_wtg1gFqNBY',generate_string(255), generate_string(1001),russian_chars(), chinese_chars(),
+@pytest.mark.parametrize("invalid_auth_key",
+                         ['',
+                          '5354688569:AAEzsVM46oAIxt5V12juByoD_wtg1gFqNBY',
+                          generate_string(255),
+                          generate_string(1001),russian_chars(), chinese_chars(),
       special_chars(), '123'], ids=['empty string', 'uncorrect token','255 symbols','more 1000 symbols','russian','chinese', 'specials', 'digit'])
 @pytest.mark.parametrize("pet_photo",
-                        ['', 'testfile.txt', 'images/fedor.jpg']
+                        ['', 'testfile.txt', 'images\fedor.jpg']
    , ids=['empty', 'textfile', 'the file does not exist', ])
-def test_add_pet_photo(invalid_auth_key,pet_photo):
+def test_add_pet_photo(get_api_key,invalid_auth_key,pet_photo):
     pet_photo = os.path.join(os.path.dirname(__file__), pet_photo)
-    _, auth_key = pf.get_key(valid_email, valid_password)
     # получаем список питомцев
-    _, my_pets = pf.get_pet_list(auth_key, "my_pets")
+    _, my_pets = pf.get_pet_list(get_api_key, "my_pets")
     pet_id = my_pets['pets'][0]['id']
     if len(my_pets['pets']) > 0:  # проверяем, что в списке есть питомцы
-        status, result = pf.add_pet_photo(invalid_auth_key, pet_id, pet_photo)
-        data = MultipartEncoder(fields={'pet_photo': (pet_photo, open(pet_photo, 'rb'), 'image/jpeg')
-                                        })  # записываем в переменную битовый код фотографии с компьютера
+        status, result = pf.add_pet_photo(invalid_auth_key,pet_id,pet_photo)
         assert status == 400
 
 # проверяем возможность удаления питомца с неверными параметрами
 @pytest.mark.parametrize("invalid_auth_key", ['', '5354688569:AAEzsVM46oAIxt5V12juByoD_wtg1gFqNBY',generate_string(255), generate_string(1001),russian_chars(), chinese_chars(),
       special_chars(), '123'], ids=['empty string', 'uncorrect token','255 symbols','more 1000 symbols','russian','chinese', 'specials', 'digit'])
 @pytest.mark.parametrize("pet_id", ['',1234567890,generate_string(255) ], ids=['empty string', 'uncorrect id','string with 255 symbols'])
-def test_successful_delete_self_pet_with_invalid_params(invalid_auth_key,pet_id):
+def test_successful_delete_self_pet_with_invalid_params(get_api_key,invalid_auth_key,pet_id):
     #получаем действующий токен и с ним получаем список животных
-    _, auth_key = pf.get_key(valid_email, valid_password)
-    _, my_pets = pf.get_pet_list(auth_key,
+    _, my_pets = pf.get_pet_list(get_api_key,
                                  "my_pets")  # запрашиваем список своих питомцев
     if len(my_pets['pets']) == 0:  # если у меня нет никаких питомцев, добавляем питомца
-        pf.add_new_pet(auth_key, 'Жора', 'горный козел', 5, 'images/zhora.jpg')
-        _, my_pets = pf.get_pet_list(auth_key, "my_pets")  # снова получаем список питомцев - он будет один
+        pf.add_new_pet(get_api_key, 'Жора', 'горный козел', 5, 'images\zhora.jpg')
+        _, my_pets = pf.get_pet_list(get_api_key, "my_pets")  # снова получаем список питомцев - он будет один
     status, _ = pf.delete_pet(invalid_auth_key,pet_id)  # получаем статус-код ответа на запрос удаления питомца с испорченным ключом
     assert status == 403
     # проверяем, что id питомца остался в базе
@@ -104,9 +203,8 @@ def test_successful_delete_self_pet_with_invalid_params(invalid_auth_key,pet_id)
                          russian_chars().upper(), chinese_chars()]
    , ids=['empty', 'negative', 'zero', 'greater than max', 'float', 'int_max', 'int_max + 1', 'specials',
           'russian', 'RUSSIAN', 'chinese'])
-def test_update_pet(invalid_auth_key,name, animal_type, age):
-    _, auth_key = pf.get_key(valid_email, valid_password)
-    _, my_pets = pf.get_pet_list(auth_key, "my_pets")  # получаем список питомцев c корректным ключом
+def test_update_pet(get_api_key,invalid_auth_key,name, animal_type, age):
+    _, my_pets = pf.get_pet_list(get_api_key, "my_pets")  # получаем список питомцев c корректным ключом
     if len(my_pets['pets']) > 0:  # проверяем, есть ли животные в моем списке
         status, result = pf.update_pet_info(invalid_auth_key, my_pets['pets'][0]['id'], name, animal_type,
                                             age)  # выполняем метод обновления инфы
